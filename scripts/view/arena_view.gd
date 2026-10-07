@@ -26,9 +26,10 @@ class CellView:
 	var front: float
 	var back: float
 
-	func contains(world_pos: Vector3) -> bool:
+	## margin: wie weit der Mittelpunkt hinter der Tür liegen muss (0 = Türlinie).
+	func contains(world_pos: Vector3, margin: float = 0.0) -> bool:
 		var p := root.to_local(world_pos)
-		return absf(p.x) <= half_width and p.z >= -back and p.z <= front
+		return absf(p.x) <= half_width and p.z >= -back and p.z <= front - margin
 
 
 var cells := {}  # Zellen-ID -> CellView
@@ -62,9 +63,9 @@ func build(balance: BalanceConfig) -> void:
 
 
 ## Zelle, in der sich die Weltposition befindet, sonst GameState.NO_CELL.
-func cell_at(world_pos: Vector3) -> int:
+func cell_at(world_pos: Vector3, margin: float = 0.0) -> int:
 	for id in cells:
-		if cells[id].contains(world_pos):
+		if cells[id].contains(world_pos, margin):
 			return id
 	return GameState.NO_CELL
 
@@ -79,7 +80,9 @@ func refresh(state: GameState, pid: int) -> void:
 	for id in cells:
 		var cv: CellView = cells[id]
 		var inside: bool = state.cell_of(pid) == id
-		var blocked: bool = not state.doors_open() or (not inside and not state.can_enter(pid, id))
+		# Tür schließt hinter dem Spieler, sobald er die Zelle in dieser Runde betreten hat.
+		var sealed: bool = inside and state.claimed_by(id) == pid
+		var blocked: bool = not state.doors_open() or sealed or (not inside and not state.can_enter(pid, id))
 		cv.door.collision_layer = 1 if blocked else 0
 		cv.door.visible = blocked
 		cv.door_mat.albedo_color = COLOR_DOOR_BLOCKED if state.doors_open() else COLOR_DOOR_CLOSED

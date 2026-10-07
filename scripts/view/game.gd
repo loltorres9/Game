@@ -4,6 +4,7 @@ extends Node3D
 
 const BALANCE_PATH := "res://config/balance.tres"
 const LOCAL_PLAYER_ID := 1
+const ENTER_MARGIN := 0.8  # Meter hinter der Tür, ab denen eine Zelle als betreten gilt
 
 var balance: BalanceConfig
 var state: GameState
@@ -61,14 +62,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func _report_player_cell() -> void:
 	if not state.is_alive(LOCAL_PLAYER_ID):
 		return
-	var physical := arena.cell_at(player.global_position)
 	var logical := state.cell_of(LOCAL_PLAYER_ID)
-	if physical == logical:
-		return
 	if logical != GameState.NO_CELL:
-		state.leave_cell(LOCAL_PLAYER_ID)
-	if physical != GameState.NO_CELL:
-		state.enter_cell(LOCAL_PLAYER_ID, physical)
+		if arena.cell_at(player.global_position) != logical:
+			state.leave_cell(LOCAL_PLAYER_ID)
+	else:
+		# Betreten zählt erst, wenn der Spieler ganz hinter der Tür steht, damit sie ihn nicht einklemmt.
+		var entered := arena.cell_at(player.global_position, ENTER_MARGIN)
+		if entered != GameState.NO_CELL:
+			state.enter_cell(LOCAL_PLAYER_ID, entered)
 
 
 func _setup_environment() -> void:
