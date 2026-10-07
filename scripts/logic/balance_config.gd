@@ -8,6 +8,14 @@ extends Resource
 @export var player_count: int = 8
 @export var start_cell_counts_as_visited: bool = true
 
+@export_group("Arena (Meter)")
+@export var cell_width: float = 10.0
+@export var cell_front_depth: float = 7.0
+@export var cell_back_depth: float = 7.0
+@export var yard_depth: float = 22.0
+@export var wall_height: float = 4.0
+@export var door_width: float = 3.0
+
 @export_group("Runde")
 @export var observation_duration: float = 8.0
 @export var run_duration: float = 25.0
@@ -20,6 +28,7 @@ extends Resource
 
 @export_group("Spieler")
 @export var player_speed: float = 6.0
+@export var interact_range: float = 2.5
 @export var inventory_slots: int = 2
 @export var allow_early_door_break: bool = true
 

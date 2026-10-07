@@ -22,6 +22,11 @@ func _init() -> void:
 	files.sort()
 	for f in files:
 		var script := load("%s/%s" % [TEST_DIR, f]) as GDScript
+		if script == null or not script.can_instantiate():
+			printerr("  FAIL  %s: Skript lässt sich nicht laden" % f)
+			total += 1
+			failed += 1
+			continue
 		for m in script.get_script_method_list():
 			var name: String = m["name"]
 			if not name.begins_with("test_"):
@@ -31,6 +36,8 @@ func _init() -> void:
 			t._current = "%s::%s" % [f, name]
 			t.call(name)
 			total += 1
+			if t.assertions == 0:
+				t.failures.append("%s: keine Assertion ausgeführt (Skriptfehler im Test?)" % t._current)
 			if t.failures.is_empty():
 				print("  OK    ", t._current)
 			else:
